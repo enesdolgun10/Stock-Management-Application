@@ -1,0 +1,134 @@
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import axios from 'axios';
+import { Toaster } from 'react-hot-toast';
+import './App.css';
+import ScannerPage from './pages/ScannerPage';
+import Inventory from './pages/Inventory';
+import InvoicePage from './pages/InvoicePage';
+import SalesHistory from './pages/SalesHistory';
+
+const Home = () => {
+  const [stats, setStats] = useState({ total_items: 0, total_stock: 0, low_stock: [], out_of_stock: [] });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get("http://127.0.0.1:8000/dashboard-stats");
+      if (res.data.status === "success") {
+        setStats(res.data);
+      }
+    } catch (error) {
+      console.error("İstatistikler alınamadı", error);
+    }
+  };
+
+  return (
+    <div className="App wide" style={{ paddingTop: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <div>
+          <h2 style={{ color: '#1f2937', fontSize: '32px', fontWeight: '800', margin: '0 0 5px 0' }}>
+            Esnaf Stok Sistemi
+          </h2>
+          <p style={{ color: '#6b7280', margin: 0, fontSize: '15px' }}>Dükkanının dijital kontrol paneli</p>
+        </div>
+      </div>
+
+      {/* ÜST PANEL: İSTATİSTİKLER */}
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 200px', backgroundColor: '#eff6ff', padding: '20px', borderRadius: '15px', border: '1px solid #bfdbfe', textAlign: 'center' }}>
+          <span style={{ fontSize: '30px' }}>📦</span>
+          <h3 style={{ color: '#1e3a8a', fontSize: '28px', margin: '10px 0 5px 0' }}>{stats.total_items}</h3>
+          <p style={{ color: '#3b82f6', margin: 0, fontWeight: '600' }}>Farklı Çeşit Ürün</p>
+        </div>
+        <div style={{ flex: '1 1 200px', backgroundColor: '#f0fdf4', padding: '20px', borderRadius: '15px', border: '1px solid #bbf7d0', textAlign: 'center' }}>
+          <span style={{ fontSize: '30px' }}>📊</span>
+          <h3 style={{ color: '#14532d', fontSize: '28px', margin: '10px 0 5px 0' }}>{stats.total_stock}</h3>
+          <p style={{ color: '#22c55e', margin: 0, fontWeight: '600' }}>Depodaki Toplam Adet</p>
+        </div>
+      </div>
+
+      {/* ORTA PANEL: UYARILAR */}
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '40px', flexWrap: 'wrap' }}>
+        {/* Stoğu Azalanlar */}
+        <div className="card compact-card" style={{ flex: '1 1 300px', borderTop: '4px solid #f59e0b', margin: 0 }}>
+          <h3 style={{ color: '#d97706', margin: '0 0 15px 0', fontSize: '18px' }}>⚠️ Stoğu Azalanlar (Son 5)</h3>
+          {stats.low_stock.length === 0 ? (
+            <p style={{ color: '#6b7280', fontSize: '14px' }}>Stoğu azalan ürün yok, her şey yolunda!</p>
+          ) : (
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {stats.low_stock.slice(0, 5).map((item, idx) => (
+                <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #fde68a', fontSize: '14px' }}>
+                  <span style={{ fontWeight: '600', color: '#92400e' }}>{item.brand} {item.product_name}</span>
+                  <span style={{ backgroundColor: '#f59e0b', color: 'white', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>{item.current_stock} Kaldı</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Tükenenler */}
+        <div className="card compact-card" style={{ flex: '1 1 300px', borderTop: '4px solid #ef4444', margin: 0 }}>
+          <h3 style={{ color: '#b91c1c', margin: '0 0 15px 0', fontSize: '18px' }}>🚨 Tamamen Tükenenler</h3>
+          {stats.out_of_stock.length === 0 ? (
+            <p style={{ color: '#6b7280', fontSize: '14px' }}>Tükenen ürün bulunmuyor.</p>
+          ) : (
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {stats.out_of_stock.slice(0, 5).map((item, idx) => (
+                <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #fecaca', fontSize: '14px' }}>
+                  <span style={{ fontWeight: '600', color: '#7f1d1d' }}>{item.brand} {item.product_name}</span>
+                  <span style={{ color: '#ef4444', fontWeight: 'bold' }}>TÜKENDİ</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {/* ALT PANEL: ANA MENÜ BUTONLARI */}
+      <h3 style={{ color: '#374151', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '20px', textAlign: 'left' }}>Hızlı İşlemler</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
+        <Link to="/scanner" style={{ display: 'contents' }}>
+          <button className="main-button btn-blue" style={{ margin: 0, height: '80px', fontSize: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: '24px', marginBottom: '5px' }}>🛒</span> PERAKENDE SATIŞ
+          </button>
+        </Link>
+        <Link to="/invoice" style={{ display: 'contents' }}>
+          <button className="main-button" style={{ margin: 0, height: '80px', fontSize: '16px', backgroundColor: '#8b5cf6', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: '24px', marginBottom: '5px' }}>🧾</span> FATURA / MAL KABUL
+          </button>
+        </Link>
+        <Link to="/inventory" style={{ display: 'contents' }}>
+          <button className="main-button btn-green" style={{ margin: 0, height: '80px', fontSize: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: '24px', marginBottom: '5px' }}>📋</span> STOK LİSTESİ
+          </button>
+        </Link>
+        <Link to="/sales" style={{ display: 'contents' }}>
+          <button className="main-button" style={{ margin: 0, height: '80px', fontSize: '16px', backgroundColor: '#f59e0b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: '24px', marginBottom: '5px' }}>📊</span> SATIŞ GEÇMİŞİ
+          </button>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <Toaster position="top-center" toastOptions={{ duration: 2500, style: { fontSize: '15px', fontWeight: '600', borderRadius: '12px' } }} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/scanner" element={<ScannerPage />} />
+        <Route path="/inventory" element={<Inventory />} />
+        <Route path="/invoice" element={<InvoicePage />} />
+        <Route path="/sales" element={<SalesHistory />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
