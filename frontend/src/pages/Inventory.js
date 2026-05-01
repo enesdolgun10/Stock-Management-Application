@@ -22,7 +22,7 @@ const Inventory = () => {
 
     const fetchInventory = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:8000/inventory");
+            const res = await axios.get("https://stock-management-application.onrender.com/inventory");
             setInventory(res.data);
             setSelectedItems([]);
         } catch (error) {
@@ -109,7 +109,7 @@ const Inventory = () => {
 
     const handleSaveClick = async (id) => {
         try {
-            await axios.put(`http://127.0.0.1:8000/inventory/${id}`, editFormData);
+            await axios.put(`https://stock-management-application.onrender.com/inventory/${id}`, editFormData);
             toast.success("Ürün başarıyla güncellendi!");
             setEditingId(null);
             fetchInventory();
@@ -127,7 +127,7 @@ const Inventory = () => {
     const confirmDelete = async () => {
         if (!itemToDelete) return;
         try {
-            await axios.delete(`http://127.0.0.1:8000/inventory/${itemToDelete.id}`);
+            await axios.delete(`https://stock-management-application.onrender.com/inventory/${itemToDelete.id}`);
             toast.success("Ürün tamamen silindi.");
             fetchInventory();
         } catch (error) {
@@ -141,7 +141,7 @@ const Inventory = () => {
     const confirmBulkDelete = async () => {
         if (selectedItems.length === 0) return;
         try {
-            await Promise.all(selectedItems.map(id => axios.delete(`http://127.0.0.1:8000/inventory/${id}`)));
+            await Promise.all(selectedItems.map(id => axios.delete(`https://stock-management-application.onrender.com/inventory/${id}`)));
             toast.success(`${selectedItems.length} ürün tamamen silindi.`);
             fetchInventory();
         } catch (error) {

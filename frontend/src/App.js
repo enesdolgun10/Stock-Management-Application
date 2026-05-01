@@ -17,7 +17,7 @@ const Home = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/dashboard-stats");
+      const res = await axios.get("https://stock-management-application.onrender.com/dashboard-stats");
       if (res.data.status === "success") {
         setStats(res.data);
       }
