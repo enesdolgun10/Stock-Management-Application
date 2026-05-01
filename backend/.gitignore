@@ -1,0 +1,15 @@
+# Python Geçici Dosyaları
+__pycache__/
+*.pyc
+
+# Sanal Ortam
+venv/
+env/
+
+# Çevresel Değişkenler
+.env
+
+# Veritabanı ve Loglar (Eski kalıntılar gitmesin)
+*.db
+*.sqlite3
+*.log
