@@ -9,3 +9,4 @@ opencv-python-headless
 pyzbar
 pytesseract
 pdf2image
+pymupdf
