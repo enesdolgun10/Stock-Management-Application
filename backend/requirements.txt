@@ -1,12 +1,11 @@
 fastapi
 uvicorn
-python-multipart
-pydantic
 psycopg2-binary
+pydantic
+supabase
+python-dotenv
+python-multipart
 opencv-python-headless
-numpy
 pyzbar
 pytesseract
-Pillow
-PyMuPDF
-python-dotenv
+pdf2image
