@@ -30,7 +30,7 @@ const ScannerPage = () => {
 
     const fetchInventory = async () => {
         try {
-            const res = await axios.get("https://stock-management-application.onrender.com/inventory");
+            const res = await axios.get("/inventory");
             setInventoryList(res.data);
         } catch (error) {
             console.error("Envanter çekilemedi.");
@@ -81,7 +81,7 @@ const ScannerPage = () => {
         setShowSuggestions(false);
 
         try {
-            const response = await axios.get(`https://stock-management-application.onrender.com/product/${barcode}`);
+            const response = await axios.get(`/product/${barcode}`);
             if (response.data.status === "success") {
                 const data = response.data.data;
                 setScannedData(data);
@@ -115,7 +115,7 @@ const ScannerPage = () => {
         setLoading(true);
         setMessage("Fotoğraf İşleniyor...");
         try {
-            const res = await axios.post("https://stock-management-application.onrender.com/product/scan-image", formData);
+            const res = await axios.post("/product/scan-image", formData);
             if (res.data.status === "success") {
                 const data = res.data.data;
                 setScannedData(data);
@@ -166,7 +166,7 @@ const ScannerPage = () => {
                 current_stock: qty,
                 price: 0.0
             };
-            await axios.post("https://stock-management-application.onrender.com/product/save", payload);
+            await axios.post("/product/save", payload);
             toast.success(`${qty} adet stoğa eklendi!`);
 
             clearForm();
@@ -195,7 +195,7 @@ const ScannerPage = () => {
                 quantity: qty,
                 customer_name: customerName
             };
-            await axios.post("https://stock-management-application.onrender.com/product/sell", payload);
+            await axios.post("/product/sell", payload);
 
             const msgName = customerName.trim() ? ` (${customerName})` : '';
             toast.success(`${qty} adet satıldı${msgName}!`, {

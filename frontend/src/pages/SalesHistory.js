@@ -20,7 +20,7 @@ const SalesHistory = () => {
     const fetchSales = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`https://stock-management-application.onrender.com/sales?timeframe=${timeframe}`);
+            const res = await axios.get(`/sales?timeframe=${timeframe}`);
             setSales(res.data);
             setSelectedItems([]);
         } catch (err) {
@@ -71,7 +71,7 @@ const SalesHistory = () => {
     const confirmDelete = async () => {
         if (!itemToDelete) return;
         try {
-            await axios.delete(`https://stock-management-application.onrender.com/sales/${itemToDelete.id}`);
+            await axios.delete(`/sales/${itemToDelete.id}`);
             toast.success("Satış kaydı silindi.");
             fetchSales();
         } catch (error) {
@@ -85,7 +85,7 @@ const SalesHistory = () => {
     const confirmBulkDelete = async () => {
         if (selectedItems.length === 0) return;
         try {
-            await Promise.all(selectedItems.map(id => axios.delete(`https://stock-management-application.onrender.com/sales/${id}`)));
+            await Promise.all(selectedItems.map(id => axios.delete(`/sales/${id}`)));
             toast.success(`${selectedItems.length} adet satış kaydı silindi.`);
             fetchSales();
         } catch (error) {

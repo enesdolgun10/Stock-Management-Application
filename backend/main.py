@@ -1,11 +1,17 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
 import re
+from supabase import create_client, Client
+from dotenv import load_dotenv
+
+# .env dosyasındaki gizli şifreleri sisteme yükler
+load_dotenv()
 
 from ocr_utils import read_barcode_from_image, extract_text_from_invoice, extract_text_from_pdf
 
@@ -19,9 +25,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# YENİ VE KALICI SUPABASE VERİTABANIMIZ!
-# DİKKAT: [YOUR-PASSWORD] yazan yere Supabase şifreni yaz!
-DATABASE_URL = "postgresql://postgres.qnqfhahwclldcoherekt:JH!LewWB8!kKKw,@aws-1-eu-central-1.pooler.supabase.com:6543/postgres"
+# SUPABASE BAĞLANTILARI (Şifreler artık .env adlı gizli kasadan çekiliyor!)
+DATABASE_URL = os.getenv("DATABASE_URL")
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# GÜVENLİK GÖREVLİSİ (Token Çözücü)
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    try:
+        # Gelen token'ı Supabase'e doğrulattırıp user_id'yi alıyoruz
+        res = supabase.auth.get_user(token)
+        return res.user.id
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Yetkisiz erişim veya oturum süresi dolmuş!")
 
 class Product(BaseModel):
     barcode_no: str
@@ -51,7 +72,6 @@ class BulkSaveRequest(BaseModel):
     items: List[Product]
 
 def get_db_connection():
-    # PostgreSQL veritabanına bağlanır
     conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
     return conn
 
@@ -59,11 +79,12 @@ def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # PostgreSQL uyumlu tablo oluşturma (AUTOINCREMENT yerine SERIAL kullanıyoruz)
+    # Tablo yapılarına user_id eklendi ve UNIQUE kısıtlaması güncellendi
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS Products (
             id SERIAL PRIMARY KEY,
-            barcode_no TEXT UNIQUE NOT NULL,
+            user_id UUID NOT NULL,
+            barcode_no TEXT NOT NULL,
             brand TEXT DEFAULT '',
             product_name TEXT NOT NULL,
             category TEXT,
@@ -71,13 +92,15 @@ def init_db():
             size_type TEXT,
             dimensions TEXT,
             price REAL,
-            current_stock INTEGER DEFAULT 0
+            current_stock INTEGER DEFAULT 0,
+            CONSTRAINT unique_user_barcode UNIQUE (user_id, barcode_no)
         )
     ''')
         
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS Sales (
             id SERIAL PRIMARY KEY,
+            user_id UUID NOT NULL,
             barcode_no TEXT NOT NULL,
             product_name TEXT NOT NULL,
             quantity INTEGER NOT NULL,
@@ -90,34 +113,34 @@ def init_db():
     cursor.close()
     conn.close()
 
-# Sunucu ilk açıldığında tabloları oluştur
 try:
     init_db()
-    print("✅ Bulut Veritabanına (Supabase) Başarıyla Bağlanıldı ve Tablolar Hazır!")
+    print("✅ Bulut Veritabanına Başarıyla Bağlanıldı ve Tablolar Hazır!")
 except Exception as e:
-    print(f"❌ Veritabanı Bağlantı Hatası (Şifreni kontrol et!): {str(e)}")
+    print(f"❌ Veritabanı Bağlantı Hatası: {str(e)}")
 
 
 @app.get("/")
 def read_root():
     return {"status": "online"}
 
+# ARTIK TÜM FONKSİYONLAR user_id İSTİYOR VE SADECE O KULLANICININ VERİSİNİ GETİRİYOR
+
 @app.get("/inventory")
-async def get_all_inventory():
+async def get_all_inventory(user_id: str = Depends(get_current_user)):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Products ORDER BY id DESC")
+    cursor.execute("SELECT * FROM Products WHERE user_id = %s ORDER BY id DESC", (user_id,))
     items = cursor.fetchall()
     cursor.close()
     conn.close()
     return [dict(row) for row in items]
 
 @app.get("/product/{barcode}")
-async def get_product(barcode: str):
+async def get_product(barcode: str, user_id: str = Depends(get_current_user)):
     conn = get_db_connection()
     cursor = conn.cursor()
-    # PostgreSQL'de ? yerine %s kullanılır
-    cursor.execute("SELECT * FROM Products WHERE barcode_no = %s", (barcode,))
+    cursor.execute("SELECT * FROM Products WHERE user_id = %s AND barcode_no = %s", (user_id, barcode))
     product = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -128,33 +151,32 @@ async def get_product(barcode: str):
     return {"status": "success", "data": dict(product)}
 
 @app.post("/product/scan-image")
-async def scan_image(file: UploadFile = File(...)):
+async def scan_image(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
     contents = await file.read()
     barcode = read_barcode_from_image(contents)
     if not barcode:
         raise HTTPException(status_code=400, detail="Barkod okunamadı.")
-    return await get_product(barcode)
+    return await get_product(barcode, user_id)
 
 @app.post("/product/save")
-def save_product(product: Product):
+def save_product(product: Product, user_id: str = Depends(get_current_user)):
     if product.current_stock <= 0:
         raise HTTPException(status_code=400, detail="Stok miktarı 1'den küçük olamaz!")
         
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        # PostgreSQL UPSERT Sözdizimi
         cursor.execute('''
-            INSERT INTO Products (barcode_no, brand, product_name, category, color, size_type, dimensions, price, current_stock)
-            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (barcode_no) DO UPDATE SET
+            INSERT INTO Products (user_id, barcode_no, brand, product_name, category, color, size_type, dimensions, price, current_stock)
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (user_id, barcode_no) DO UPDATE SET
                 brand = EXCLUDED.brand,
                 product_name = EXCLUDED.product_name,
                 color = EXCLUDED.color,
                 size_type = EXCLUDED.size_type,
                 dimensions = EXCLUDED.dimensions,
                 current_stock = Products.current_stock + EXCLUDED.current_stock
-        ''', (product.barcode_no, product.brand, product.product_name, product.category, product.color, product.size_type, product.dimensions, product.price, product.current_stock))
+        ''', (user_id, product.barcode_no, product.brand, product.product_name, product.category, product.color, product.size_type, product.dimensions, product.price, product.current_stock))
         conn.commit()
         return {"status": "success"}
     except Exception as e:
@@ -164,7 +186,7 @@ def save_product(product: Product):
         conn.close()
 
 @app.post("/product/bulk-save")
-def bulk_save_products(request: BulkSaveRequest):
+def bulk_save_products(request: BulkSaveRequest, user_id: str = Depends(get_current_user)):
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -173,13 +195,13 @@ def bulk_save_products(request: BulkSaveRequest):
                 continue
                 
             cursor.execute('''
-                INSERT INTO Products (barcode_no, brand, product_name, category, color, size_type, dimensions, price, current_stock)
-                VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (barcode_no) DO UPDATE SET
+                INSERT INTO Products (user_id, barcode_no, brand, product_name, category, color, size_type, dimensions, price, current_stock)
+                VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (user_id, barcode_no) DO UPDATE SET
                     product_name = EXCLUDED.product_name,
                     brand = CASE WHEN EXCLUDED.brand != '' THEN EXCLUDED.brand ELSE Products.brand END,
                     current_stock = Products.current_stock + EXCLUDED.current_stock
-            ''', (product.barcode_no, product.brand, product.product_name, product.category, product.color, product.size_type, product.dimensions, product.price, product.current_stock))
+            ''', (user_id, product.barcode_no, product.brand, product.product_name, product.category, product.color, product.size_type, product.dimensions, product.price, product.current_stock))
         conn.commit()
         return {"status": "success", "message": f"{len(request.items)} kalem ürün stoğa işlendi."}
     except Exception as e:
@@ -189,14 +211,14 @@ def bulk_save_products(request: BulkSaveRequest):
         conn.close()
 
 @app.post("/product/sell")
-def sell_product(req: SellRequest):
+def sell_product(req: SellRequest, user_id: str = Depends(get_current_user)):
     if req.quantity <= 0:
         raise HTTPException(status_code=400, detail="Satış adedi 1'den küçük olamaz!")
         
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT product_name, brand, current_stock FROM Products WHERE barcode_no = %s", (req.barcode_no,))
+        cursor.execute("SELECT product_name, brand, current_stock FROM Products WHERE user_id = %s AND barcode_no = %s", (user_id, req.barcode_no))
         product = cursor.fetchone()
         
         if not product:
@@ -205,12 +227,12 @@ def sell_product(req: SellRequest):
         if product['current_stock'] < req.quantity:
             raise HTTPException(status_code=400, detail="Yetersiz stok! Mevcut stoktan fazlasını satamazsınız.")
             
-        cursor.execute('UPDATE Products SET current_stock = current_stock - %s WHERE barcode_no = %s', (req.quantity, req.barcode_no))
+        cursor.execute('UPDATE Products SET current_stock = current_stock - %s WHERE user_id = %s AND barcode_no = %s', (req.quantity, user_id, req.barcode_no))
         
         full_name = f"{product['brand']} {product['product_name']}".strip()
         customer = req.customer_name if req.customer_name.strip() else "Perakende Müşteri"
         
-        cursor.execute('INSERT INTO Sales (barcode_no, product_name, quantity, customer_name) VALUES (%s, %s, %s, %s)', (req.barcode_no, full_name, req.quantity, customer))
+        cursor.execute('INSERT INTO Sales (user_id, barcode_no, product_name, quantity, customer_name) VALUES (%s, %s, %s, %s, %s)', (user_id, req.barcode_no, full_name, req.quantity, customer))
         
         conn.commit()
         new_stock = product['current_stock'] - req.quantity
@@ -224,36 +246,35 @@ def sell_product(req: SellRequest):
         conn.close()
 
 @app.get("/sales")
-async def get_sales_history(timeframe: str = "all"):
+async def get_sales_history(timeframe: str = "all", user_id: str = Depends(get_current_user)):
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    query = "SELECT * FROM Sales"
+    query = "SELECT * FROM Sales WHERE user_id = %s"
     
-    # PostgreSQL uyumlu tarih filtreleri
     if timeframe == "daily":
-        query += " WHERE DATE(sale_date) = CURRENT_DATE"
+        query += " AND DATE(sale_date) = CURRENT_DATE"
     elif timeframe == "weekly":
-        query += " WHERE sale_date >= CURRENT_DATE - INTERVAL '7 days'"
+        query += " AND sale_date >= CURRENT_DATE - INTERVAL '7 days'"
     elif timeframe == "monthly":
-        query += " WHERE sale_date >= CURRENT_DATE - INTERVAL '1 month'"
+        query += " AND sale_date >= CURRENT_DATE - INTERVAL '1 month'"
     elif timeframe == "3months":
-        query += " WHERE sale_date >= CURRENT_DATE - INTERVAL '3 months'"
+        query += " AND sale_date >= CURRENT_DATE - INTERVAL '3 months'"
         
     query += " ORDER BY sale_date DESC LIMIT 1000"
     
-    cursor.execute(query)
+    cursor.execute(query, (user_id,))
     items = cursor.fetchall()
     cursor.close()
     conn.close()
     return [dict(row) for row in items]
 
 @app.delete("/sales/{item_id}")
-def delete_sale(item_id: int):
+def delete_sale(item_id: int, user_id: str = Depends(get_current_user)):
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM Sales WHERE id = %s", (item_id,))
+        cursor.execute("DELETE FROM Sales WHERE user_id = %s AND id = %s", (user_id, item_id))
         conn.commit()
         return {"status": "success"}
     except Exception as e:
@@ -263,11 +284,11 @@ def delete_sale(item_id: int):
         conn.close()
 
 @app.delete("/inventory/{item_id}")
-def delete_item(item_id: int):
+def delete_item(item_id: int, user_id: str = Depends(get_current_user)):
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM Products WHERE id = %s", (item_id,))
+        cursor.execute("DELETE FROM Products WHERE user_id = %s AND id = %s", (user_id, item_id))
         conn.commit()
         return {"status": "success"}
     except Exception as e:
@@ -277,7 +298,7 @@ def delete_item(item_id: int):
         conn.close()
 
 @app.put("/inventory/{item_id}")
-def update_item(item_id: int, item: ProductUpdate):
+def update_item(item_id: int, item: ProductUpdate, user_id: str = Depends(get_current_user)):
     if item.current_stock < 0:
         raise HTTPException(status_code=400, detail="Stok eksi değere düşürülemez!")
         
@@ -287,8 +308,8 @@ def update_item(item_id: int, item: ProductUpdate):
         cursor.execute('''
             UPDATE Products 
             SET brand = %s, product_name = %s, color = %s, size_type = %s, dimensions = %s, current_stock = %s
-            WHERE id = %s
-        ''', (item.brand, item.product_name, item.color, item.size_type, item.dimensions, item.current_stock, item_id))
+            WHERE user_id = %s AND id = %s
+        ''', (item.brand, item.product_name, item.color, item.size_type, item.dimensions, item.current_stock, user_id, item_id))
         conn.commit()
         return {"status": "success"}
     except Exception as e:
@@ -298,7 +319,7 @@ def update_item(item_id: int, item: ProductUpdate):
         conn.close()
 
 @app.post("/invoice/scan")
-async def scan_invoice(file: UploadFile = File(...)):
+async def scan_invoice(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
     try:
         contents = await file.read()
         
@@ -361,21 +382,21 @@ async def scan_invoice(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Sunucu Hatası: {str(e)}")
 
 @app.get("/dashboard-stats")
-async def get_dashboard_stats():
+async def get_dashboard_stats(user_id: str = Depends(get_current_user)):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT COUNT(*) as count FROM Products")
+        cursor.execute("SELECT COUNT(*) as count FROM Products WHERE user_id = %s", (user_id,))
         total_items = cursor.fetchone()['count']
         
-        cursor.execute("SELECT SUM(current_stock) as total FROM Products")
+        cursor.execute("SELECT SUM(current_stock) as total FROM Products WHERE user_id = %s", (user_id,))
         total_stock_query = cursor.fetchone()['total']
         total_stock = total_stock_query if total_stock_query else 0
         
-        cursor.execute("SELECT barcode_no, brand, product_name, current_stock FROM Products WHERE current_stock <= 5 AND current_stock > 0 ORDER BY current_stock ASC")
+        cursor.execute("SELECT barcode_no, brand, product_name, current_stock FROM Products WHERE user_id = %s AND current_stock <= 5 AND current_stock > 0 ORDER BY current_stock ASC", (user_id,))
         low_stock_items = cursor.fetchall()
         
-        cursor.execute("SELECT barcode_no, brand, product_name, current_stock FROM Products WHERE current_stock <= 0 ORDER BY product_name ASC")
+        cursor.execute("SELECT barcode_no, brand, product_name, current_stock FROM Products WHERE user_id = %s AND current_stock <= 0 ORDER BY product_name ASC", (user_id,))
         out_of_stock = cursor.fetchall()
         
         return {

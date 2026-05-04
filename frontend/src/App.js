@@ -1,33 +1,59 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { Toaster } from 'react-hot-toast';
+import { supabase } from './supabaseClient';
 import './App.css';
 import ScannerPage from './pages/ScannerPage';
 import Inventory from './pages/Inventory';
 import InvoicePage from './pages/InvoicePage';
 import SalesHistory from './pages/SalesHistory';
+import Login from './pages/Login';
 
-const Home = () => {
+// .env okunursa onu kullan, okunamazsa garanti olarak localhost:8000'e git!
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
+axios.interceptors.request.use(async (config) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    config.headers.Authorization = `Bearer ${session.access_token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
+// ARTIK HOME BİLEŞENİ İÇİNE "session" BİLGİSİNİ (Kullanıcı verisini) ALIYOR
+const Home = ({ session }) => {
   const [stats, setStats] = useState({ total_items: 0, total_stock: 0, low_stock: [], out_of_stock: [] });
+  const [loadingStats, setLoadingStats] = useState(true); // YENİ: Yükleniyor durumu
 
   useEffect(() => {
     fetchStats();
   }, []);
 
   const fetchStats = async () => {
+    setLoadingStats(true); // Veri çekmeye başlarken yükleniyor moduna geç
     try {
-      const res = await axios.get("https://stock-management-application.onrender.com/dashboard-stats");
+      const res = await axios.get("/dashboard-stats");
       if (res.data.status === "success") {
         setStats(res.data);
       }
     } catch (error) {
       console.error("İstatistikler alınamadı", error);
+    } finally {
+      setLoadingStats(false); // İşlem bitince yükleniyor modunu kapat
     }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
   };
 
   return (
     <div className="App wide" style={{ paddingTop: '20px' }}>
+
+      {/* BAŞLIK VE KULLANICI/ÇIKIŞ BÖLÜMÜ */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <div>
           <h2 style={{ color: '#1f2937', fontSize: '32px', fontWeight: '800', margin: '0 0 5px 0' }}>
@@ -35,28 +61,48 @@ const Home = () => {
           </h2>
           <p style={{ color: '#6b7280', margin: 0, fontSize: '15px' }}>Dükkanının dijital kontrol paneli</p>
         </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          {/* KULLANICI BİLGİSİ BURAYA EKLENDİ */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 'bold', textTransform: 'uppercase' }}>Aktif Dükkan</span>
+            <span style={{ fontSize: '14px', color: '#374151', fontWeight: '600' }}>👤 {session?.user?.email}</span>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <span>🚪</span> Çıkış
+          </button>
+        </div>
       </div>
 
-      {/* ÜST PANEL: İSTATİSTİKLER */}
+      {/* ÜST PANEL: İSTATİSTİKLER (Yükleniyor animasyonu eklendi) */}
       <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 200px', backgroundColor: '#eff6ff', padding: '20px', borderRadius: '15px', border: '1px solid #bfdbfe', textAlign: 'center' }}>
           <span style={{ fontSize: '30px' }}>📦</span>
-          <h3 style={{ color: '#1e3a8a', fontSize: '28px', margin: '10px 0 5px 0' }}>{stats.total_items}</h3>
+          <h3 style={{ color: '#1e3a8a', fontSize: '28px', margin: '10px 0 5px 0' }}>
+            {loadingStats ? <span style={{ fontSize: '18px', color: '#60a5fa' }}>Hesaplanıyor...</span> : stats.total_items}
+          </h3>
           <p style={{ color: '#3b82f6', margin: 0, fontWeight: '600' }}>Farklı Çeşit Ürün</p>
         </div>
         <div style={{ flex: '1 1 200px', backgroundColor: '#f0fdf4', padding: '20px', borderRadius: '15px', border: '1px solid #bbf7d0', textAlign: 'center' }}>
           <span style={{ fontSize: '30px' }}>📊</span>
-          <h3 style={{ color: '#14532d', fontSize: '28px', margin: '10px 0 5px 0' }}>{stats.total_stock}</h3>
+          <h3 style={{ color: '#14532d', fontSize: '28px', margin: '10px 0 5px 0' }}>
+            {loadingStats ? <span style={{ fontSize: '18px', color: '#4ade80' }}>Hesaplanıyor...</span> : stats.total_stock}
+          </h3>
           <p style={{ color: '#22c55e', margin: 0, fontWeight: '600' }}>Depodaki Toplam Adet</p>
         </div>
       </div>
 
-      {/* ORTA PANEL: UYARILAR */}
+      {/* ORTA PANEL: UYARILAR (Yükleniyor durumu eklendi) */}
       <div style={{ display: 'flex', gap: '20px', marginBottom: '40px', flexWrap: 'wrap' }}>
-        {/* Stoğu Azalanlar */}
         <div className="card compact-card" style={{ flex: '1 1 300px', borderTop: '4px solid #f59e0b', margin: 0 }}>
           <h3 style={{ color: '#d97706', margin: '0 0 15px 0', fontSize: '18px' }}>⚠️ Stoğu Azalanlar (Son 5)</h3>
-          {stats.low_stock.length === 0 ? (
+          {loadingStats ? (
+            <p style={{ color: '#9ca3af', fontSize: '14px', fontStyle: 'italic' }}>Veriler buluttan çekiliyor⏳...</p>
+          ) : stats.low_stock.length === 0 ? (
             <p style={{ color: '#6b7280', fontSize: '14px' }}>Stoğu azalan ürün yok, her şey yolunda!</p>
           ) : (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -70,10 +116,11 @@ const Home = () => {
           )}
         </div>
 
-        {/* Tükenenler */}
         <div className="card compact-card" style={{ flex: '1 1 300px', borderTop: '4px solid #ef4444', margin: 0 }}>
           <h3 style={{ color: '#b91c1c', margin: '0 0 15px 0', fontSize: '18px' }}>🚨 Tamamen Tükenenler</h3>
-          {stats.out_of_stock.length === 0 ? (
+          {loadingStats ? (
+            <p style={{ color: '#9ca3af', fontSize: '14px', fontStyle: 'italic' }}>Veriler buluttan çekiliyor⏳...</p>
+          ) : stats.out_of_stock.length === 0 ? (
             <p style={{ color: '#6b7280', fontSize: '14px' }}>Tükenen ürün bulunmuyor.</p>
           ) : (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -117,15 +164,47 @@ const Home = () => {
 };
 
 function App() {
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontWeight: 'bold', color: '#4b5563' }}>Sistem Hazırlanıyor...</div>;
+  }
+
+  const ProtectedRoute = ({ children }) => {
+    if (!session) {
+      return <Navigate to="/login" replace />;
+    }
+    return children;
+  };
+
   return (
     <Router>
       <Toaster position="top-center" toastOptions={{ duration: 2500, style: { fontSize: '15px', fontWeight: '600', borderRadius: '12px' } }} />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/scanner" element={<ScannerPage />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/invoice" element={<InvoicePage />} />
-        <Route path="/sales" element={<SalesHistory />} />
+        <Route path="/login" element={session ? <Navigate to="/" replace /> : <Login />} />
+
+        {/* HOME BİLEŞENİNE ARTIK SESSION BİLGİSİNİ GÖNDERİYORUZ */}
+        <Route path="/" element={<ProtectedRoute><Home session={session} /></ProtectedRoute>} />
+        <Route path="/scanner" element={<ProtectedRoute><ScannerPage /></ProtectedRoute>} />
+        <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+        <Route path="/invoice" element={<ProtectedRoute><InvoicePage /></ProtectedRoute>} />
+        <Route path="/sales" element={<ProtectedRoute><SalesHistory /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

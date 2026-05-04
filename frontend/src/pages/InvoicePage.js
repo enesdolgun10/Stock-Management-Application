@@ -20,7 +20,7 @@ const InvoicePage = () => {
         toast.loading("Belge analiz ediliyor...", { id: 'ocr-toast' });
 
         try {
-            const res = await axios.post("https://stock-management-application.onrender.com/invoice/scan", formData);
+            const res = await axios.post("/invoice/scan", formData);
             if (res.data.status === "success") {
                 const parsed = res.data.parsed_items.map(item => ({
                     barcode_no: item.barcode_no,
@@ -73,7 +73,7 @@ const InvoicePage = () => {
 
         try {
             const payload = { items: itemsToSave };
-            await axios.post("https://stock-management-application.onrender.com/product/bulk-save", payload);
+            await axios.post("/product/bulk-save", payload);
 
             toast.success(`${validItems.length} ürün '${globalBrand}' markasıyla stoğa eklendi!`, {
                 style: { padding: '16px', color: '#fff', background: '#10b981', fontWeight: 'bold' }
