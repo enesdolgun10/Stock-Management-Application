@@ -9,3 +9,4 @@ pyzbar
 pytesseract
 Pillow
 PyMuPDF
+python-dotenv
