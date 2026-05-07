@@ -6,7 +6,6 @@ const InvoicePage = () => {
     const [loadingInvoice, setLoadingInvoice] = useState(false);
     const [draftItems, setDraftItems] = useState([]);
 
-    // YENİ: Toplu Marka Etiketi için State
     const [globalBrand, setGlobalBrand] = useState('');
 
     const handleInvoiceUpload = async (e) => {
@@ -64,7 +63,6 @@ const InvoicePage = () => {
             return;
         }
 
-        // YENİ: Girilen markayı tablodaki tüm ürünlere otomatik olarak zımbala
         const itemsToSave = validItems.map(item => ({
             ...item,
             brand: globalBrand.trim(),
@@ -80,7 +78,7 @@ const InvoicePage = () => {
             });
 
             setDraftItems([]);
-            setGlobalBrand(''); // Masayı temizlerken markayı da sıfırla
+            setGlobalBrand('');
         } catch (error) {
             toast.error("Kaydedilirken hata oluştu.");
         }
@@ -114,7 +112,6 @@ const InvoicePage = () => {
             {draftItems.length > 0 && (
                 <div className="card compact-card" style={{ borderTop: '4px solid #f59e0b', padding: '20px' }}>
 
-                    {/* YENİ: MARKA ETİKETLEME ALANI */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px', backgroundColor: '#eff6ff', padding: '15px', borderRadius: '10px', marginBottom: '20px', border: '1px solid #bfdbfe' }}>
                         <span style={{ fontSize: '28px' }}>🏷️</span>
                         <div style={{ flex: 1 }}>

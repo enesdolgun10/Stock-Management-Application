@@ -4,8 +4,7 @@ from pyzbar.pyzbar import decode
 import pytesseract
 from PIL import Image
 import io
-import fitz  # PyMuPDF
-
+import fitz  
 def read_barcode_from_image(image_bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -26,19 +25,14 @@ def extract_text_from_invoice(image_bytes):
         print(f"OCR Hatası: {e}")
         return []
 
-# YENİ: Akıllı PDF Tablo Okuyucu
 def extract_text_from_pdf(pdf_bytes):
     try:
         doc = fitz.open(stream=pdf_bytes, filetype="pdf")
         lines = []
         
         for page in doc:
-            # 'words' metodu sayfadaki her kelimeyi x,y koordinatlarıyla getirir
             words = page.get_text("words")
             
-            # Tablolardaki sütun ayrılmasını (ekrandaki alt alta çıkma hatasını) çözmek için:
-            # Kelimeleri Yatay (Y) koordinatlarına göre aynı satırda birleştiriyoruz.
-            # (w[1] / 5) formülü ufak kaymaları tolere etmek içindir. Sonra X'e göre dizeriz.
             words.sort(key=lambda w: (round(w[1] / 5), w[0]))
             
             current_line = []

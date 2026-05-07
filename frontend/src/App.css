@@ -25,7 +25,7 @@ body {
   margin: 0 auto;
 }
 
-/* YENİ: iOS Tarzı Şık Sekmeler */
+
 .tab-container {
   display: flex;
   background: #e5e7eb;
@@ -54,7 +54,6 @@ body {
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-/* Kart Yapısı */
 .card {
   background: var(--card-bg);
   border-radius: 16px;
@@ -68,7 +67,6 @@ body {
   padding: 16px;
 }
 
-/* Form Elemanları */
 .form-label {
   font-size: 13px;
   color: var(--text-muted);
@@ -97,7 +95,6 @@ body {
   box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
 }
 
-/* Şık Butonlar */
 .main-button {
   width: 100%;
   padding: 14px;
@@ -127,7 +124,6 @@ body {
 
 .main-button:active { transform: scale(0.97); }
 
-/* Stok Durum Kutusu */
 .stock-box {
   display: flex;
   align-items: center;
@@ -139,19 +135,17 @@ body {
   margin: 15px 0;
 }
 
-/* EKLENECEK YENİ STİLLER (Ferah Stok Listesi İçin) */
 
 .App.wide {
-  max-width: 1200px; /* Tablo sayfasının genişliğini 2 katına çıkardık */
+  max-width: 1200px; 
 }
 
-/* Modern Tablo Konteyneri */
 .modern-table-container {
   background: white;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.04);
   border: 1px solid var(--border);
-  overflow-x: auto; /* Mobilde yatay kaydırma için */
+  overflow-x: auto; 
   width: 100%;
   margin-bottom: 30px;
 }
@@ -159,10 +153,9 @@ body {
 .inventory-table {
   width: 100%;
   border-collapse: collapse;
-  white-space: nowrap; /* Metinlerin alt satıra geçip tabloyu bozmasını engeller */
+  white-space: nowrap; 
 }
 
-/* Şık Tablo Başlığı */
 .inventory-table thead {
   background-color: #f8fafc;
   border-bottom: 2px solid #e2e8f0;
@@ -178,14 +171,13 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* Ferah Satırlar ve Hover Efekti */
 .inventory-table tbody tr {
   border-bottom: 1px solid #f1f5f9;
   transition: background-color 0.2s ease;
 }
 
 .inventory-table tbody tr:hover {
-  background-color: #f8fafc; /* Üzerine gelince çok hafif grileşir */
+  background-color: #f8fafc; 
 }
 
 .inventory-table td {
@@ -195,7 +187,6 @@ body {
   vertical-align: middle;
 }
 
-/* Varyant Etiketleri (Badges) */
 .badge {
   display: inline-block;
   padding: 6px 12px;
@@ -212,7 +203,6 @@ body {
   color: #0369a1;
 }
 
-/* Arama Çubuğu Konteyneri */
 .search-container {
   background: white;
   padding: 8px;

@@ -14,7 +14,6 @@ def init_db():
         conn = sqlite3.connect(DATABASE_PATH)
         cursor = conn.cursor()
         
-        # 1. Products Tablosu (Ev Tekstiline Özel Sütunlarla)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS Products (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,7 +28,6 @@ def init_db():
             )
         ''')
         
-        # 2. Invoices Tablosu
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS Invoices (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,7 +37,6 @@ def init_db():
             )
         ''')
         
-        # 3. InvoiceItems Tablosu
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS InvoiceItems (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

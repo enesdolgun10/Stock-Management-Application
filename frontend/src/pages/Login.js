@@ -5,14 +5,13 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [isRegistering, setIsRegistering] = useState(false); // Kayıt mı yoksa giriş mi modunda olduğumuzu tutar
+    const [isRegistering, setIsRegistering] = useState(false);
 
     const handleAuth = async (e) => {
         e.preventDefault();
         setLoading(true);
 
         if (isRegistering) {
-            // YENİ DÜKKAN KAYDI
             const { error } = await supabase.auth.signUp({
                 email: email,
                 password: password,
@@ -22,10 +21,9 @@ const Login = () => {
                 alert('Kayıt başarısız: ' + error.message);
             } else {
                 alert('Dükkan kaydın başarıyla oluşturuldu! Şimdi giriş yapabilirsin.');
-                setIsRegistering(false); // Kayıt başarılıysa giriş ekranına döndür
+                setIsRegistering(false);
             }
         } else {
-            // MEVCUT DÜKKANA GİRİŞ
             const { error } = await supabase.auth.signInWithPassword({
                 email: email,
                 password: password,

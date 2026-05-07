@@ -152,9 +152,7 @@ const Inventory = () => {
         }
     };
 
-    // AKILLI EXCEL İNDİRME: Seçili varsa onları, yoksa tümünü indirir
     const exportToExcel = () => {
-        // Eğer seçim yapıldıysa sadece seçilenleri filtrele, yapılmadıysa ekrandaki tüm listeyi al
         const itemsToExport = selectedItems.length > 0
             ? processedInventory.filter(item => selectedItems.includes(item.id))
             : processedInventory;
@@ -182,7 +180,6 @@ const Inventory = () => {
         const dateStr = new Date().toISOString().slice(0, 10);
         XLSX.writeFile(workbook, `Stok_Durumu_${dateStr}.xlsx`);
 
-        // Kullanıcıya akıllı mesaj ver
         if (selectedItems.length > 0) {
             toast.success(`${selectedItems.length} seçili ürün Excel'e aktarıldı!`, { icon: '📊' });
         } else {

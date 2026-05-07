@@ -10,7 +10,7 @@ import InvoicePage from './pages/InvoicePage';
 import SalesHistory from './pages/SalesHistory';
 import Login from './pages/Login';
 
-// .env okunursa onu kullan, okunamazsa garanti olarak localhost:8000'e git!
+
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 axios.interceptors.request.use(async (config) => {
@@ -23,17 +23,16 @@ axios.interceptors.request.use(async (config) => {
   return Promise.reject(error);
 });
 
-// ARTIK HOME BİLEŞENİ İÇİNE "session" BİLGİSİNİ (Kullanıcı verisini) ALIYOR
+
 const Home = ({ session }) => {
   const [stats, setStats] = useState({ total_items: 0, total_stock: 0, low_stock: [], out_of_stock: [] });
-  const [loadingStats, setLoadingStats] = useState(true); // YENİ: Yükleniyor durumu
-
+  const [loadingStats, setLoadingStats] = useState(true);
   useEffect(() => {
     fetchStats();
   }, []);
 
   const fetchStats = async () => {
-    setLoadingStats(true); // Veri çekmeye başlarken yükleniyor moduna geç
+    setLoadingStats(true);
     try {
       const res = await axios.get("/dashboard-stats");
       if (res.data.status === "success") {
@@ -42,7 +41,7 @@ const Home = ({ session }) => {
     } catch (error) {
       console.error("İstatistikler alınamadı", error);
     } finally {
-      setLoadingStats(false); // İşlem bitince yükleniyor modunu kapat
+      setLoadingStats(false);
     }
   };
 
@@ -53,7 +52,6 @@ const Home = ({ session }) => {
   return (
     <div className="App wide" style={{ paddingTop: '20px' }}>
 
-      {/* BAŞLIK VE KULLANICI/ÇIKIŞ BÖLÜMÜ */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <div>
           <h2 style={{ color: '#1f2937', fontSize: '32px', fontWeight: '800', margin: '0 0 5px 0' }}>
@@ -63,7 +61,7 @@ const Home = ({ session }) => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          {/* KULLANICI BİLGİSİ BURAYA EKLENDİ */}
+
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
             <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 'bold', textTransform: 'uppercase' }}>Aktif Dükkan</span>
             <span style={{ fontSize: '14px', color: '#374151', fontWeight: '600' }}>👤 {session?.user?.email}</span>
@@ -78,7 +76,6 @@ const Home = ({ session }) => {
         </div>
       </div>
 
-      {/* ÜST PANEL: İSTATİSTİKLER (Yükleniyor animasyonu eklendi) */}
       <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 200px', backgroundColor: '#eff6ff', padding: '20px', borderRadius: '15px', border: '1px solid #bfdbfe', textAlign: 'center' }}>
           <span style={{ fontSize: '30px' }}>📦</span>
@@ -96,7 +93,6 @@ const Home = ({ session }) => {
         </div>
       </div>
 
-      {/* ORTA PANEL: UYARILAR (Yükleniyor durumu eklendi) */}
       <div style={{ display: 'flex', gap: '20px', marginBottom: '40px', flexWrap: 'wrap' }}>
         <div className="card compact-card" style={{ flex: '1 1 300px', borderTop: '4px solid #f59e0b', margin: 0 }}>
           <h3 style={{ color: '#d97706', margin: '0 0 15px 0', fontSize: '18px' }}>⚠️ Stoğu Azalanlar (Son 5)</h3>
@@ -135,7 +131,6 @@ const Home = ({ session }) => {
         </div>
       </div>
 
-      {/* ALT PANEL: ANA MENÜ BUTONLARI */}
       <h3 style={{ color: '#374151', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '20px', textAlign: 'left' }}>Hızlı İşlemler</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
         <Link to="/scanner" style={{ display: 'contents' }}>
@@ -199,7 +194,6 @@ function App() {
       <Routes>
         <Route path="/login" element={session ? <Navigate to="/" replace /> : <Login />} />
 
-        {/* HOME BİLEŞENİNE ARTIK SESSION BİLGİSİNİ GÖNDERİYORUZ */}
         <Route path="/" element={<ProtectedRoute><Home session={session} /></ProtectedRoute>} />
         <Route path="/scanner" element={<ProtectedRoute><ScannerPage /></ProtectedRoute>} />
         <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />

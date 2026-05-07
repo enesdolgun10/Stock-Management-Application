@@ -10,7 +10,6 @@ import re
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
-# .env dosyasındaki gizli şifreleri sisteme yükler
 load_dotenv()
 
 from ocr_utils import read_barcode_from_image, extract_text_from_invoice, extract_text_from_pdf
@@ -25,20 +24,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# SUPABASE BAĞLANTILARI (Şifreler artık .env adlı gizli kasadan çekiliyor!)
 DATABASE_URL = os.getenv("DATABASE_URL")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# GÜVENLİK GÖREVLİSİ (Token Çözücü)
 security = HTTPBearer()
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
     try:
-        # Gelen token'ı Supabase'e doğrulattırıp user_id'yi alıyoruz
         res = supabase.auth.get_user(token)
         return res.user.id
     except Exception as e:
@@ -79,7 +75,6 @@ def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Tablo yapılarına user_id eklendi ve UNIQUE kısıtlaması güncellendi
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS Products (
             id SERIAL PRIMARY KEY,
@@ -124,7 +119,6 @@ except Exception as e:
 def read_root():
     return {"status": "online"}
 
-# ARTIK TÜM FONKSİYONLAR user_id İSTİYOR VE SADECE O KULLANICININ VERİSİNİ GETİRİYOR
 
 @app.get("/inventory")
 async def get_all_inventory(user_id: str = Depends(get_current_user)):

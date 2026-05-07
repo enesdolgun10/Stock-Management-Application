@@ -96,7 +96,6 @@ const SalesHistory = () => {
         }
     };
 
-    // AKILLI EXCEL İNDİRME: Seçili varsa onları, yoksa tümünü indirir
     const exportToExcel = () => {
         const itemsToExport = selectedItems.length > 0
             ? filteredSales.filter(item => selectedItems.includes(item.id))

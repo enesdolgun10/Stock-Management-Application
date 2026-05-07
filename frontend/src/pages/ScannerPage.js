@@ -147,7 +147,6 @@ const ScannerPage = () => {
             return;
         }
 
-        // YENİ: Eksi veya 0 rakam engelleyicisi
         const qty = parseInt(quantityToAdd);
         if (isNaN(qty) || qty <= 0) {
             toast.error("Eklenecek adet 1'den küçük olamaz!");
@@ -177,7 +176,6 @@ const ScannerPage = () => {
     };
 
     const sellStock = async () => {
-        // YENİ: Eksi veya 0 satış engelleyicisi
         const qty = parseInt(quantityToAdd);
         if (isNaN(qty) || qty <= 0) {
             toast.error("Satış adedi 1'den küçük olamaz!");
