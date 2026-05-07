@@ -1,70 +1,170 @@
-# Getting Started with Create React App
+# 📦 Esnaf Stok Yönetim Sistemi (SaaS)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Esnaf ve küçük işletmelerin depo, stok ve satış süreçlerini dijitalleştiren; çoklu kullanıcı (Multi-tenant) mimarisine sahip, bulut tabanlı bir envanter yönetim sistemidir.
 
-## Available Scripts
+[![Live Demo](https://img.shields.io/badge/Canl%C4%B1-Demo-success?style=for-the-badge&logo=vercel)](SİTENİN_CANLI_LİNKİNİ_BURAYA_YAZ)
+[![Python](https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
 
-In the project directory, you can run:
+---
 
-### `npm start`
+# 🚀 Proje Hakkında
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Esnaf Stok Yönetim Sistemi; küçük işletmelerin stok, satış ve depo yönetimini kolaylaştırmak amacıyla geliştirilmiş modern bir SaaS uygulamasıdır. Sistem sayesinde işletmeler ürünlerini dijital ortamda yönetebilir, barkod ile hızlı satış yapabilir ve stok hareketlerini gerçek zamanlı takip edebilir.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Proje, güvenli çoklu kullanıcı mimarisi sayesinde her işletmenin kendi verilerini izole şekilde yönetebilmesini sağlar.
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# ✨ Öne Çıkan Özellikler
 
-### `npm run build`
+## 🏪 Çoklu Dükkan Mimarisi (Multi-Tenant SaaS)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Her kullanıcıya özel izole veri alanı
+- JWT Token tabanlı kimlik doğrulama
+- Supabase RLS (Row Level Security) ile güvenli veri erişimi
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 📄 Akıllı Fatura Okuma (OCR)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- PDF veya fotoğraf üzerinden otomatik veri okuma
+- Barkod, ürün adı ve adet bilgisi çıkarma
+- Tesseract OCR ve PyMuPDF desteği
 
-### `npm run eject`
+## 📷 Canlı Barkod Okuma
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- Telefon veya bilgisayar kamerası ile barkod okutma
+- Hızlı satış işlemleri
+- Anlık stok sorgulama
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📊 Gerçek Zamanlı Dashboard
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- Azalan stokları görüntüleme
+- Tükenen ürün uyarıları
+- Toplam ürün ve satış istatistikleri
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+# 🛠 Kullanılan Teknolojiler
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Backend
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- Python 3.11
+- FastAPI
+- Supabase (PostgreSQL)
+- JWT Authentication
+- PyTesseract
+- PyMuPDF
+- Render
 
-### Code Splitting
+## Frontend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- React.js
+- React Router
+- Axios
+- HTML5-QRCode
+- Vercel
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+# 📸 Ekran Görüntüleri
 
-### Making a Progressive Web App
+```md
+![Dashboard](./screenshots/dashboard.png)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+![Barkod Okuma](./screenshots/barcode-reader.png)
+```
 
-### Advanced Configuration
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+# ⚙️ Kurulum ve Çalıştırma
 
-### Deployment
+## 1️⃣ Backend Kurulumu
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```bash
+cd backend
 
-### `npm run build` fails to minify
+python -m venv venv
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Windows
+
+```bash
+venv\Scripts\activate
+```
+
+### Linux / MacOS
+
+```bash
+source venv/bin/activate
+```
+
+### Paket Kurulumu
+
+```bash
+pip install -r requirements.txt
+```
+
+### `.env` Dosyası
+
+```env
+DATABASE_URL=postgresql://...
+SUPABASE_URL=https://...
+SUPABASE_KEY=ey...
+```
+
+### Backend Başlatma
+
+```bash
+uvicorn main:app --reload
+```
+
+---
+
+## 2️⃣ Frontend Kurulumu
+
+```bash
+cd frontend
+
+npm install
+```
+
+### `.env` Dosyası
+
+```env
+REACT_APP_API_URL=http://localhost:8000
+```
+
+### Frontend Başlatma
+
+```bash
+npm start
+```
+
+---
+
+# 🚧 Gelecek Planları (Roadmap)
+
+- [ ] Mobil uyumlu kart tabanlı stok tasarımı
+- [ ] Barkod okuma için hızlı yeniden tarama sistemi
+- [ ] Bottom Navigation arayüzü
+- [ ] PDF / Excel dışa aktarma özelliği
+- [ ] Satış raporlama sistemi
+- [ ] Günlük / haftalık analiz ekranları
+
+---
+
+# 👨‍💻 Geliştirici
+
+**Enes Dolgun**
+
+- Yazılım Mühendisliği Öğrencisi
+- Backend & Full Stack Development
+- Python / FastAPI / React
+
+---
+
+# 📜 Lisans
+
+Bu proje MIT lisansı altında paylaşılmıştır.
