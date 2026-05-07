@@ -73,6 +73,7 @@ Proje, güvenli çoklu kullanıcı mimarisi sayesinde her işletmenin kendi veri
 </p>
 
 <p align="center">
+  <img src="./screenshots/mal-kabul-kasa2.png" width="250"/>
   <img src="./screenshots/stock-list.jpeg" width="250"/>
   <img src="./screenshots/stocklist2.jpeg" width="250"/>
 </p>
