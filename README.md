@@ -149,9 +149,6 @@ npm start
 - [ ] Mobil uyumlu kart tabanlı stok tasarımı
 - [ ] Barkod okuma için hızlı yeniden tarama sistemi
 - [ ] Bottom Navigation arayüzü
-- [ ] PDF / Excel dışa aktarma özelliği
-- [ ] Satış raporlama sistemi
-- [ ] Günlük / haftalık analiz ekranları
 
 ---
 
