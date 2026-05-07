@@ -67,9 +67,7 @@ Proje, güvenli çoklu kullanıcı mimarisi sayesinde her işletmenin kendi veri
 # 📸 Ekran Görüntüleri
 
 ```md
-![Dashboard](/screenshots/dashboard.png)
-
-![Pdf Okuma](/screenshots/pdf-reader.png)
+![Pdf Okuma](./screenshots/pdf-reader.png)
 ```
 
 ---
