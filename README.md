@@ -3,10 +3,6 @@
 Esnaf ve küçük işletmelerin depo, stok ve satış süreçlerini dijitalleştiren; çoklu kullanıcı (Multi-tenant) mimarisine sahip, bulut tabanlı bir envanter yönetim sistemidir.
 
 [![Live Demo](https://img.shields.io/badge/Canl%C4%B1-Demo-success?style=for-the-badge&logo=vercel)](https://stock-management-application-lilac.vercel.app/login)
-[![Python](https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
 
 ---
 
