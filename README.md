@@ -66,7 +66,12 @@ Proje, güvenli çoklu kullanıcı mimarisi sayesinde her işletmenin kendi veri
 
 # 📸 Ekran Görüntüleri
 
+![Dijital Kontrol Paneli](./screenshots/dashboard.png)
+![Dijital Kontrol Paneli](./screenshots/dashboard2.png)
 ![Pdf Okuma](./screenshots/pdf-reader.png)
+![Mal Kabul & Kasa](./screenshots/mal-kabul-kasa.png)
+![Stok Listesi](./screenshots/stock-list.jpeg)
+![Stok Listesi](./screenshots/stocklist2.jpeg)
 
 ---
 
